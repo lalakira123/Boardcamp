@@ -1,11 +1,11 @@
-import express, {json} from 'express';
+import express, { json } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import categoriesRouter from './routers/categoriesRouter';
-import gamesRouter from './routers/gamesRouter';
-import customersRouter from './routers/customersRouter';
-import rentalsRouter from './routers/rentalsRouter';
+import categoriesRouter from './routers/categoriesRouter.js';
+import gamesRouter from './routers/gamesRouter.js';
+import customersRouter from './routers/customersRouter.js';
+import rentalsRouter from './routers/rentalsRouter.js';
 
 const app = express();
 app.use(cors());
@@ -17,4 +17,4 @@ app.use(gamesRouter);
 app.use(customersRouter);
 app.use(rentalsRouter);
 
-app.listen(4000, () => console.log('Servidor Conectado!'));
+app.listen(5000, () => console.log('Servidor Conectado!'));
