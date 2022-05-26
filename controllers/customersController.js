@@ -26,3 +26,20 @@ export async function searchCustomer(req, res) {
         res.status(404).send('Não foi possível conectar ao Banco');
     }
 }
+
+export async function insertCustomer(req, res) {
+    const { name, phone, cpf, birthday } = req.body;
+    try {
+        const existCpf = await connection.query(`SELECT * FROM customers WHERE cpf = $1;`, [cpf]);
+        if( existCpf.rows[0]?.cpf ) return res.sendStatus(409);
+
+        await connection.query(`
+            INSERT INTO customers (name, phone, cpf, birthday)
+            VALUES ($1, $2, $3, $4);
+        `, [name, phone, cpf, birthday]);
+
+        res.sendStatus(201);
+    } catch (error) {
+        res.status(404).send('Não foi possível conectar ao Banco');
+    }
+}
