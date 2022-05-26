@@ -1,6 +1,6 @@
 import connection from './../database.js';
 
-export async function listCostumers(req, res) {
+export async function listCustomers(req, res) {
     let filter = req.query.cpf;
     try {
         if( !filter ) filter = "";
@@ -14,7 +14,7 @@ export async function listCostumers(req, res) {
     }
 }
 
-export async function searchCostumer(req, res) {
+export async function searchCustomer(req, res) {
     const { id } = req.params;
     try {
         const existCostumer = await connection.query(`SELECT * FROM customers WHERE id = $1;`, [id]);
