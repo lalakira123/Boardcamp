@@ -48,3 +48,24 @@ export async function insertCustomer(req, res) {
         res.status(404).send('Não foi possível conectar ao Banco');
     }
 }
+
+export async function updateCustomer(req, res) {
+    const { id } = req.params;
+    const { name, phone, cpf, birthday } = req.body;
+    try {
+        const validation = insertCustomerSchema.validate(req.body);
+        if( validation?.error ) return res.status(400).send(validation.error.details);
+
+        const existCpf = await connection.query(`SELECT * FROM customers WHERE cpf= $1;`, [cpf]);
+        if( existCpf.rows[0]?.cpf && existCpf.rows[0]?.id != id) return res.sendStatus(409);
+
+        await connection.query(`UPDATE customers 
+            SET name=$1, phone=$2, cpf=$3, birthday=$4
+            WHERE id=$5;
+        `, [name, phone, cpf, birthday, id]);
+
+        res.sendStatus(200);
+    } catch (error) {
+        res.status(404).send('Não foi possível conectar ao Banco');
+    }
+}
