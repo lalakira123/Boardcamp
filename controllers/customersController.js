@@ -1,5 +1,7 @@
 import connection from './../database.js';
 
+import insertCustomerSchema from './../schemas/insertCustomerSchema.js';
+
 export async function listCustomers(req, res) {
     let filter = req.query.cpf;
     try {
@@ -30,6 +32,9 @@ export async function searchCustomer(req, res) {
 export async function insertCustomer(req, res) {
     const { name, phone, cpf, birthday } = req.body;
     try {
+        const validation = insertCustomerSchema.validate(req.body);
+        if( validation?.error ) return res.status(400).send(validation.error.details);
+
         const existCpf = await connection.query(`SELECT * FROM customers WHERE cpf = $1;`, [cpf]);
         if( existCpf.rows[0]?.cpf ) return res.sendStatus(409);
 
