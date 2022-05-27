@@ -10,9 +10,10 @@ export async function insertRental(req, res) {
                 games."stockTotal", 
                 games."pricePerDay", 
                 games.id as "gamesID", 
-                customers.id as "customersID" 
-            FROM games, customers
-            WHERE games.id=$1 AND customers.id=$2;
+                customers.id as "customersID"
+            FROM games
+            JOIN customers
+            ON games.id=$1 AND customers.id=$2;
         `, [ gameId, customerId ]);
 
         const validation = existCustomerAndGame.rows[0];
