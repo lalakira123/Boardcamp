@@ -35,3 +35,38 @@ export async function insertRental(req, res) {
         res.status(404).send('Não foi possível conectar ao Banco');
     }
 }
+
+export async function finishRental(req, res) {
+    const { id } = req.params;
+    try {
+        const existId = await connection.query(`
+            SELECT rentals.*, games."pricePerDay" 
+            FROM rentals
+            JOIN games 
+            ON rentals."gameId"=games.id AND rentals.id=$1;
+        `, [ id ]);
+        const validation = existId.rows[0];
+        if( !validation?.id ) return res.sendStatus(404);
+        if( validation.returnDate !== null ) return res.sendStatus(400);
+
+        const pricePerDay = validation.pricePerDay;
+        const daysRented = validation.daysRented;
+        const rentDate = validation.rentDate;
+        const returnDate = dayjs().locale('pt-br').format('YYYY-MM-DD');
+
+        let delayDays = dayjs(returnDate).diff(rentDate, 'day', false) - daysRented;
+        if( delayDays <= 0 ) delayDays = 0;
+        const delayFee = delayDays * pricePerDay;
+
+        await connection.query(`
+            UPDATE rentals 
+            SET "returnDate"=$1, "delayFee"=$2
+            WHERE id=$3;
+        `, [ returnDate, delayFee, id ]);
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.log(error);
+        res.status(404).send('Não foi possível conectar ao Banco');
+    }
+}
