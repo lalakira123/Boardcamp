@@ -5,23 +5,8 @@ import connection from './../database.js';
 export async function insertRental(req, res) {
     const { customerId, gameId, daysRented } = req.body;
     try {
-        const existCustomerAndGame = await connection.query(`
-            SELECT 
-                games."stockTotal", 
-                games."pricePerDay", 
-                games.id as "gamesID", 
-                customers.id as "customersID"
-            FROM games
-            JOIN customers
-            ON games.id=$1 AND customers.id=$2;
-        `, [ gameId, customerId ]);
+        const { pricePerDay } = res.locals;
 
-        const validation = existCustomerAndGame.rows[0];
-        if( !validation?.gamesID || !validation?.customersID ) return res.sendStatus(400); 
-        if( validation.stockTotal <= 0 ) return res.sendStatus(400);
-        if( daysRented <= 0 ) return res.sendStatus(400);
-
-        const pricePerDay = validation.pricePerDay;
         const originalPrice = pricePerDay * daysRented;
         const rentDate = dayjs().locale('pt-bt').format('YYYY-MM-DD');
 
@@ -40,19 +25,10 @@ export async function insertRental(req, res) {
 export async function finishRental(req, res) {
     const { id } = req.params;
     try {
-        const existId = await connection.query(`
-            SELECT rentals.*, games."pricePerDay" 
-            FROM rentals
-            JOIN games 
-            ON rentals."gameId"=games.id AND rentals.id=$1;
-        `, [ id ]);
-        const validation = existId.rows[0];
-        if( !validation?.id ) return res.sendStatus(404);
-        if( validation.returnDate !== null ) return res.sendStatus(400);
-
-        const pricePerDay = validation.pricePerDay;
-        const daysRented = validation.daysRented;
-        const rentDate = validation.rentDate;
+        const { rental } = res.locals;
+        const pricePerDay = rental.pricePerDay;
+        const daysRented = rental.daysRented;
+        const rentDate = rental.rentDate;
         const returnDate = dayjs().locale('pt-br').format('YYYY-MM-DD');
 
         let delayDays = dayjs(returnDate).diff(rentDate, 'day', false) - daysRented;
