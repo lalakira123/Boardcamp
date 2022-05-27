@@ -32,6 +32,6 @@ export async function insertRental(req, res) {
 
         res.sendStatus(201);
     } catch (error) {
-        
+        res.status(404).send('Não foi possível conectar ao Banco');
     }
 }
