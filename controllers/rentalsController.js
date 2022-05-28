@@ -2,7 +2,60 @@ import dayjs from 'dayjs';
 
 import connection from './../database.js';
 
-export async function insertRental(req, res) {
+export async function listRental(req, res){
+    const { gameId, customerId } = req.query;
+    try {
+        const query = await connection.query(`
+            SELECT 
+                rentals.*, 
+                games.name as "gameName", 
+                games."categoryId", 
+                categories.name as "categoryName", 
+                customers.name
+            FROM rentals
+            JOIN games ON rentals."gameId"=games.id
+            JOIN customers ON rentals."customerId"=customers.id
+            JOIN categories ON games."categoryId"=categories.id
+        `);
+
+        let rentalsList = query.rows;
+        if( gameId ){
+            const filterGameList = rentalsList.filter((rent) => {return rent.gameId == gameId });
+            rentalsList = [...filterGameList];
+        }
+        if( customerId ){
+            const filterCustomerList = rentalsList.filter((rent) => {return rent.customerId == customerId });
+            rentalsList = [...filterCustomerList];
+        }
+
+        const rentals = rentalsList.map((rent) => {
+            const { 
+                id, customerId, gameId, rentDate, 
+                daysRented, returnDate, originalPrice, 
+                delayFee, name,gameName, categoryId, categoryName
+            } = rent;
+            return {
+                id, customerId, gameId, rentDate, daysRented, returnDate, originalPrice, delayFee,
+                customer: {
+                    id: customerId,
+                    name
+                },
+                game: {
+                    id: gameId,
+                    name: gameName,
+                    categoryId,
+                    categoryName
+                }
+            }
+        });
+
+        res.send(rentals);
+    } catch (error) {
+        res.status(404).send('Não foi possível acessar ao Banco');
+    }
+}
+
+export async function insertRental(req, res){
     const { customerId, gameId, daysRented } = req.body;
     try {
         const { pricePerDay } = res.locals;
