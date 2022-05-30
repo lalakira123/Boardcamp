@@ -47,3 +47,17 @@ export async function existRental(req, res, next){
         res.status(404).send('Não foi possível conectar ao Banco');
     }
 }
+
+export async function deleteRentalValidation(req, res, next){
+    const { id } = req.params;
+    try {
+        const existId = await connection.query(`SELECT * FROM rentals WHERE id=$1;`, [ id ]);
+        const validation = existId.rows[0];
+        if( !validation?.id ) return res.sendStatus(404);
+        if( validation.returnDate !== null ) return res.sendStatus(400);
+
+        next();
+    } catch (error) {
+        res.status(404).send('Não foi possível conectar ao Banco');
+    }
+}
